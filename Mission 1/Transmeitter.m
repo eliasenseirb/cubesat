@@ -28,7 +28,9 @@ gammap = Sp/B;
 s= zeros(size(gammap));
 
 for i=1:length(gammap)
-    s(i) = exp(1j*phi_p(t-(i-1)*Ts,gammap(i),M,Ts,Sp(i)));
+    for k=1:lenght(t)
+        s(i) = exp(1j*phi_p(t(k)-(i-1)*Ts,gammap(i),M,Ts,Sp(i)));
+    end
 end
 
 
