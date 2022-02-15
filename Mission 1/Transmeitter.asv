@@ -2,34 +2,49 @@ clear;
 close all;
 clc
 
-%% Paramètres
+%% ParamÃ¨tres
 SF = 7 ;            %Nombre de bits/symbole
 M=2^SF;             
-Nbbits = 21000;     %Nombre de bits générés
+Nbbits = 21000;     %Nombre de bits gÃ©nÃ©rÃ©s
 Ds = 1e6;           %Debit symbole
 Ts=1/Ds;            %Temps symbole
 B=600e3;            % Largeur de bande
-P= 14;              %Puissance du signal émis (en Dbm)
+P= 14;              %Puissance du signal Ã©mis (en Dbm)
 
 
 f0 = 1;             %Frequence min d'un chirp
 f1= 250;            %Frequence max d'un chirp
-t= 0:Ts:1e-3;       % Durée d'un chirp
+t= 0:Ts:1e-3;       % DurÃ©e d'un chirp
 t1 = 1e-6;
 
 sb = randi([0,1],1,Nbbits);
 
 sbMAT = reshape(sb,SF,length(sb)/SF);           %Matrice dont les colonnes sont des sous-sequences de SF bits
 
-Sp = bit2int(sbMAT,SF,true);                    %Convertit en decimal les sequences de SF bits avec bit de poids fort à gauche (en haut de la colonne)
+Sp = bit2int(sbMAT,SF,true);                    %Convertit en decimal les sequences de SF bits avec bit de poids fort Ã  gauche (en haut de la colonne)
 
 gammap = Sp/B;
 
-s= zeros(size(gammap));
+s= zeros(size(t));
+for k=1:length(t)
+    for i=1:length(gammap)
+        if t(k)>=(i-1)*Ts && t(k)<i*Ts
+            s(k) = s(k)+exp(1j*phi_p(t(k)-(i-1)*Ts,gammap(i),M,Ts,Sp(i)));
+        end
+    end
+end
 
-for i=1:length(gammap)
-    s(i) = exp(1j*phi_p(t
+s_test =zeros(size(t));
 
+for k=1:length(t)
+    for i=1:length(gammap)
+        if t(k)>=-Ts/2 && t(k)>-Ts/2+gammap(i)
+            s_test(k)=s_test(k)+exp(1j*2*pi*(k-i*Ts)*(B/Ts*(t(k)-gammap(i))+B));
+        elseif t(k)>=-Ts/2+gammap(i) && t(k)<Ts/2
+            s_test(k)=s_test(k)+exp(1j*2*pi*(k-i*Ts)*(B/Ts*(t(k)-gammap(i))));
+        end
+    end
+end
 
 
 ss = chirp(t,f0,t1,f1);
@@ -39,6 +54,11 @@ figure()
 plot(t,ss)
 title('chirp')
 
+figure,
+subplot 211
+plot(t,abs(s_test)),title("Module de s")
+subplot 212
+plot(t,angle(s_test)),title("Phase de s")
 figure()
 pspectrum(ss,Ds,'spectrogram')
 

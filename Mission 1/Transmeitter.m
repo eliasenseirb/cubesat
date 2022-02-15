@@ -6,15 +6,17 @@ clc
 SF = 7 ;            %Nombre de bits/symbole
 M=2^SF;             
 Nbbits = 21000;     %Nombre de bits générés
-Ds = 1e6;           %Debit symbole
-Ts=1/Ds;            %Temps symbole
 B=600e3;            % Largeur de bande
 P= 14;              %Puissance du signal émis (en Dbm)
+Ts=M/B;            %Temps symbole
+Ds = 1/Ts;           %Debit symbole
+Te = Ts/100;        %Période d'échantillonnage 
 
+SNR_dB = 40;           %Rapport signal sur bruit au niveau du récepteur
 
 f0 = 1;             %Frequence min d'un chirp
 f1= 250;            %Frequence max d'un chirp
-t= 0:Ts:1e-3;       % Durée d'un chirp
+t= 0:Te:1e-3;       % Durée d'un chirp
 t1 = 1e-6;
 
 sb = randi([0,1],1,Nbbits);
@@ -25,25 +27,40 @@ Sp = bit2int(sbMAT,SF,true);                    %Convertit en decimal les sequen
 
 gammap = Sp/B;
 
-s= zeros(size(gammap));
+s =zeros(size(t));
 
-for i=1:length(gammap)
-    for k=1:lenght(t)
-        s(i) = exp(1j*phi_p(t(k)-(i-1)*Ts,gammap(i),M,Ts,Sp(i)));
+for k=1:length(t)
+    for i=1:length(gammap)
+        s(k)=s(k)+exp(1j*2*pi*(t(k)-i*Ts)*(fc(t(k)-i*Ts,gammap(i),B,Ts)));
     end
 end
 
+%% Canal
+h=1;
 
+y=filter(h,1,s);
 
+%% Récepteur
 
-ss = chirp(t,f0,t1,f1);
+Py = mean(abs(y).^2); % Puissance instantannée du signal reçu
+Pbruit = Py/10^(SNR_dB/10);
+b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AWG de variance Pbruit
+
+x = y + b;
+
 
 %% Figures
-figure()
-plot(t,ss)
-title('chirp')
 
-figure()
-pspectrum(ss,Ds,'spectrogram')
 
+figure,
+subplot 211
+plot(t,abs(s)),title("Module de s")
+subplot 212
+plot(t,angle(s)),title("Phase de s")
+
+figure,
+subplot 211
+plot(t,abs(x)),title("Module de x")
+subplot 212
+plot(t,angle(x)),title("Phase de x")
 
