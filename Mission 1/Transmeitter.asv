@@ -21,7 +21,16 @@ sb = randi([0,1],1,Nbbits);
 
 sbMAT = reshape(sb,SF,length(sb)/SF);           %Matrice dont les colonnes sont des sous-sequences de SF bits
 
-Sp = bin2dec(1:
+Sp = bit2int(sbMAT,SF,true);                    %Convertit en decimal les sequences de SF bits avec bit de poids fort à gauche (en haut de la colonne)
+
+gammap = Sp/B;
+
+s= zeros(size(gammap));
+
+for i=1:length(gammap)
+    s(i) = exp(1j*phi_p(t
+
+
 
 ss = chirp(t,f0,t1,f1);
 

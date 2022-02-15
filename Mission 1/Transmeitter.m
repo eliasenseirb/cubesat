@@ -23,6 +23,16 @@ sbMAT = reshape(sb,SF,length(sb)/SF);           %Matrice dont les colonnes sont 
 
 Sp = bit2int(sbMAT,SF,true);                    %Convertit en decimal les sequences de SF bits avec bit de poids fort à gauche (en haut de la colonne)
 
+gammap = Sp/B;
+
+s= zeros(size(gammap));
+
+for i=1:length(gammap)
+    s(i) = exp(1j*phi_p(t-(i-1)*Ts,gammap(i),M,Ts,Sp(i)));
+end
+
+
+
 
 ss = chirp(t,f0,t1,f1);
 
