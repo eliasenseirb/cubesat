@@ -10,11 +10,13 @@ Ds = 1e6;           %Debit symbole
 Ts=1/Ds;            %Temps symbole
 B=600e3;            % Largeur de bande
 P= 14;              %Puissance du signal émis (en Dbm)
+%Te=Ts/1000;         %Temps d'echantillonnage
+
 
 
 f0 = 1;             %Frequence min d'un chirp
 f1= 250;            %Frequence max d'un chirp
-t= 0:Ts:1e-3;       % Durée d'un chirp
+t= 0:Te:1e-3;       % Durée d'un chirp
 t1 = 1e-6;
 
 sb = randi([0,1],1,Nbbits);
@@ -25,11 +27,11 @@ Sp = bit2int(sbMAT,SF,true);                    %Convertit en decimal les sequen
 
 gammap = Sp/B;
 
-s= zeros(size(gammap));
+s= zeros(size(t));
 
 for i=1:length(gammap)
-    for k=1:lenght(t)
-        s(i) = exp(1j*phi_p(t(k)-(i-1)*Ts,gammap(i),M,Ts,Sp(i)));
+    for k=1:length(t)
+        s(k) = exp(1j*phi_p(t(k)-(i-1)*Ts,gammap(i),M,Ts,Sp(i)));
     end
 end
 
