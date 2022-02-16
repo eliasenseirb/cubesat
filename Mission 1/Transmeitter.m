@@ -51,7 +51,7 @@ b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AW
 
 x = y + b;
 
-x=x(1:Fse:length(x));
+%x=x(1:Fse:length(x));
 %x_Mat = reshape(x,Fse,length(x)/Fse);
 %rm = x(1:Fse:length(x));
 
