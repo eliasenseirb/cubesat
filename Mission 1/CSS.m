@@ -13,7 +13,6 @@ Ds = 1/Ts;         %Debit symbole
 Te = Ts/M;        %Période d'échantillonnage
 Nb_preambule_up = 5;
 Nb_preambule_down=2;
-Fse = 1000;            %nb échantillons pour tracer un chirp
 Nb_Chirp = 10;
 SNR_dB = 40;           %Rapport signal sur bruit au niveau du récepteur
 Nbbits = SF*Nb_Chirp;     %Nombre de bits générés
