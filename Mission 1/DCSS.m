@@ -29,9 +29,11 @@ Dp = zeros(size(Sp));
 for k=1:length(Sp)
     if k~=1
         Dp(k) = mod(Dp(k-1)+Sp(k),M);
+    else
+        Dp(k) = mod(Sp(k),M);
     end
 end
-
+Dp=[0,Dp];
 gammap = Dp/B;
 
 preambule=[repmat(chirp_up,1,Nb_preambule_up), repmat(chirp_down,1,Nb_preambule_down)]; % Signal d'apprentissage (header loRa)
@@ -61,12 +63,11 @@ sig_reshaped=reshape(x,[M,temp]); % on met en colonne les chirps
 z=sig_reshaped.*chirp_up'; % multiplication par le chirp brut
 [~, symbolesEstLoRa]=max(abs(fft(z, M, 1))); % argmax des FFT
 symbolesEstLoRa = M-(symbolesEstLoRa(8:end)-1) ;% symboles estimés sans le préambule
-symbolesEstLoRa(1)=0; % on sait que D0=0
 for k=1:length(symbolesEstLoRa)-1
     symboleEst(k) =mod(symbolesEstLoRa(k+1)-symbolesEstLoRa(k),M); 
 end
 
-BER = mean(abs(Sp(2:end)-symboleEst))
+BER = mean(abs(Sp-symboleEst))
 %% Figures
 
 
