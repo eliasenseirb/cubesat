@@ -13,7 +13,6 @@ Ds = 1/Ts;         %Debit symbole
 Te = Ts/M;        %Période d'échantillonnage
 Nb_preambule_up = 5;
 Nb_preambule_down=2;
-Fse = 1000;            %nb échantillons pour tracer un chirp
 Nb_Chirp = 10;
 SNR_dB = 40;           %Rapport signal sur bruit au niveau du récepteur
 Nbbits = SF*Nb_Chirp;     %Nombre de bits générés
@@ -50,6 +49,7 @@ y=filter(h,1,s);
 
 Py = mean(abs(y).^2); % Puissance instantannée du signal reçu
 Pbruit = Py/10^(SNR_dB/10);
+%Pbruit=0;
 b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AWG de variance Pbruit
 
 x = y + b;
@@ -60,8 +60,13 @@ x=x(1:temp*M); % on redimensionne x pour le reshape
 sig_reshaped=reshape(x,[M,temp]); % on met en colonne les chirps
 z=sig_reshaped.*chirp_up'; % multiplication par le chirp brut
 [~, symbolesEstLoRa]=max(abs(fft(z, M, 1))); % argmax des FFT
-symbolesEstLoRa = M - (symbolesEstLoRa-1); % symboles estimés
+symbolesEstLoRa = M-(symbolesEstLoRa(8:end)-1) ;% symboles estimés sans le préambule
+symbolesEstLoRa(1)=0; % on sait que D0=0
+for k=1:length(symbolesEstLoRa)-1
+    symboleEst(k) =mod(symbolesEstLoRa(k+1)-symbolesEstLoRa(k),M); 
+end
 
+BER = mean(abs(Sp(2:end)-symboleEst))
 %% Figures
 
 
