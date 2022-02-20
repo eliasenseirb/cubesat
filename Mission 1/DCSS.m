@@ -65,8 +65,7 @@ z=sig_reshaped.*chirp_up'; % multiplication par le chirp brut
 [test, symbolesEstLoRa]=max(abs(fft(z, M, 1))); % argmax des FFT
 symbolesEstLoRa = M-(symbolesEstLoRa(8:end)-1) ;% symboles estimés sans le préambule
 % Amélio concavité
-[symbole,maxi]= concave(z(:,8:end),symbolesEstLoRa); % amélioration de la localisation des max
-
+[symbole,maxi]= concave(z(:,8:end),symbolesEstLoRa,M); % amélioration de la localisation des max
 for k=1:length(symbolesEstLoRa)-1
     symboleEst(k) =mod(symbolesEstLoRa(k+1)-symbolesEstLoRa(k),M); 
     new_symb_est(k)=round(mod(symbole(k+1)-symbole(k),M));
