@@ -69,9 +69,11 @@ symbolesEstLoRa = M-(symbolesEstLoRa(8:end)-1) ;% symboles estimés sans le pré
 
 for k=1:length(symbolesEstLoRa)-1
     symboleEst(k) =mod(symbolesEstLoRa(k+1)-symbolesEstLoRa(k),M); 
+    new_symb_est(k)=(mod(symbole(k+1)-symbole(k),M));
 end
 
-BER = mean(abs(Sp-symboleEst));
+BER = mean(abs(Sp-symboleEst)); % BER avec méthode "classique"
+BER2=mean(abs(Sp-new_symb_est)); % BER avec l'algo de concavité
 %% Figures
 
 
