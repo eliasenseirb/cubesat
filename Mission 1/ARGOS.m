@@ -1,43 +1,33 @@
 clc
-clear all
-close all
+clear;
+close all;
  
 
-%% variables utiles :
-Re = 6378.137e3 % Valeur du demi grand axe en km
-f = 1/298.257223563 %  Valeur de l'applatissement
-Rp = Re*(1-f); % Valeur du demi-petit axe 
+%% Méthode des moindres carrés
+    %Estimation des coordonnées initiales xk0=(lambdak0,phik0,ftk0)
+ftk0 = 868e6;                   %Fréquence d'emission par la plateforme
+phik0=44.8378;                  %Latitude de Bordeaux
+lambdak0 = -0.594 ;             %Longitude de Bordeaux
 
-% informations balise 
-hb=0; %altitude
-latb=44.8059; %Latitude (Bordeaux)
-longb=-0.605349;% Longitude (Bordeaux)
+% deltafk0 = (rand()-0.5)*ftk0;         %Effet doppler initial (freq reçue - freq transmise)
+% frk0 = deltafk0 + ftk0;
+% 
+% if deltafk0>=0
+%     eloignement =1;
+% else
+%     eloignement=-1;
+% end
 
-GEb=Re+h;
-GPb=Rp+h;
-phib = atan((GP/GE)*tan(lat));
+    %Méthode Gauss-Newton (xk1_est = xk0_est + deltaxk0_est)
+h=20;                           %Altitude moyen à Bordeaux
+mk= 4;                      %Nombre de mesures de fréquences (doit etre >=3 pour pouvoir avoir assez d'equations)
+sigma2k = 2;
+zk = [3000 3300 2700 2950];     %Mesures de mk frequences à l'instant k
+gk0= H(lambdak0,phik0,h,ftk0,1);
+Rk = sigma2k*eye(mk);
 
-% coordonnées balise
-xb=GEb*cos(phib)*cos(longb); % x dans un repère cartésien 
-yb=GEb*cos(phib)*sin(longb);
-zb=GPb*sin(phib);
-vb=1.5; % vitesse balise
+J=Jacobien_H(lambdak0,phik0,h,ftk0);
 
-% informations satelite : 
-hbs=800e3; %altitude
-lats=44.8059; %Latitude (Satelite)
-longs=-0.605349;% Longitude (Satelite)
-
-GEb=Re+h;
-GPb=Rp+h;
-phib = atan((GP/GE)*tan(lat));
-
-% coordonnées cartesiennes satelite
-xs=GEs*cos(phis)*cos(longs); 
-ys=GEs*cos(phis)*sin(longs);
-zs=GPs*sin(phis);
-
-vs=[0 0 8];
 
 
 

@@ -49,7 +49,7 @@ y=filter(h,1,s);
 
 %% Récepteur
 
-Py = mean(abs(y).^2); % Puissance instantannée du signal reçu
+Py = mean(abs(y).^2); % Puissance instantanée du signal reçu
 Pbruit = Py/10^(SNR_dB/10);
 %Pbruit=0;
 b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AWG de variance Pbruit
@@ -67,7 +67,7 @@ for k=1:length(symbolesEstLoRa)-1
     symboleEst(k) =mod(symbolesEstLoRa(k+1)-symbolesEstLoRa(k),M); 
 end
 
-BER = mean(abs(Sp-symboleEst))
+BER = mean(abs(Sp-symboleEst));
 %% Figures
 
 
