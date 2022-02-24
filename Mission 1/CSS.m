@@ -54,7 +54,8 @@ sig_reshaped=reshape(x,[M,temp]); % on met en colonne les chirps
 z=sig_reshaped.*chirp_up'; % multiplication par le chirp brut (dechirp)
 [~, symbolesEstLoRa]=max(abs(fft(z, M, 1))); % argmax des FFT
 symbolesEstLoRa = M - (symbolesEstLoRa-1); % symboles estimés
-
+bit_est = int2bit(symbolesEstLoRa(8:end),SF);%bits estimés sans le préambule
+BER = mean(abs(bit_est(:)'-sb)); % calcul des erreurs
 %% Figures
 
 
@@ -63,10 +64,4 @@ subplot 211
 plot(abs(s)),title("Module de s")
 subplot 212
 plot(angle(s)),title("Phase de s")
-
-% figure,
-% subplot 211
-% plot(t,abs(x)),title("Module de x")
-% subplot 212
-% plot(t,angle(x)),title("Phase de x")
 
