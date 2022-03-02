@@ -62,9 +62,6 @@ dtheta_dphi = (GP/GE)/((1-GP^2/GE^2)*cos(phi)^2+GP^2/GE^2);
 
 dxyz_dlambdaphih = [-GE*cos(theta)*sin(lambda) -GE*sin(theta)*cos(lambda)*dtheta_dphi cos(theta)*sin(lambda);GE*cos(theta)*cos(lambda) -GE*sin(theta)*sin(lambda)*dtheta_dphi cos(theta)*sin(lambda);0 GP*cos(theta)*dtheta_dphi sin(theta)];
 
-disp(size(dH_dxyz*dxyz_dlambdaphih))
-disp(size(dH_dft))
-
 J_H = [dH_dxyz*dxyz_dlambdaphih dH_dft];
 
 
