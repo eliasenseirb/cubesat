@@ -45,7 +45,7 @@ Py = mean(abs(y).^2); % Puissance instantannée du signal reçu
 Pbruit = Py/10^(SNR_dB/10);
 b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AWG de variance Pbruit
 
-x = y + b;
+x = y + b; % ajout du bruit au signal
 
 temp=floor(length(x)/M); % Durée d'un chirp
 x=x(1:temp*M); % on redimensionne x pour le reshape
@@ -65,3 +65,8 @@ plot(abs(s)),title("Module de s")
 subplot 212
 plot(angle(s)),title("Phase de s")
 
+figure,
+subplot 211
+plot(abs(fft(x))),title("Module de la fft du signal bruité")
+subplot 212
+plot(angle(fft(x))),title("Phase de la fft du signal bruité")
