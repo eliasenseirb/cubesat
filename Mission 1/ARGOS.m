@@ -22,7 +22,7 @@ xk0=[lambdak0 phik0 h ftk0];
 
     %Méthode Gauss-Newton (xk1_est = xk0_est + deltaxk0_est)
 mk= 4;                      % Nombre de mesures de fréquences (doit etre >=3 pour pouvoir avoir assez d'equations)
-zk = [5e3;6e3;7e3;8e3];     % Mesures de mk frequences à l'instant k
+zk = [100e7;90e7;20e7;1e7];     % Mesures de mk frequences à l'instant k
 
 sigma2k = 1;                % Variance du bruit
 Rk = sigma2k*eye(mk);
@@ -40,6 +40,7 @@ Rk = sigma2k*eye(mk);
 
 Xk_MAT = zeros(mk+1,4);
 Xk_MAT(1,:) = xk0;
+
 
 for i=1:mk
     J= Jacobien_H(lambdak0,phik0,h,ftk0)';
