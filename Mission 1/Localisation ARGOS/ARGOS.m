@@ -26,23 +26,14 @@ disp(Vs^2-c^2*(fr1/ftk0 -1))
 lambdak0 = sin((GP^4*tan(phik0))/(GE^4)*sqrt(abs(Vs/c*(1-fr2/ftk0)-1)));   % Expression de la latitude en fonction de fr2 en radian
 disp(Vs/c*(1-fr2/ftk0)-1)
 
-h=20;                           %Altitude moyen à Bordeaux
+h=0;                                                                    %Balise en mer par exemple
 xk0=[lambdak0 phik0 h ftk0];
 
-% deltafk0 = (rand()-0.5)*ftk0;         %Effet doppler initial (freq reçue - freq transmise)
-% frk0 = deltafk0 + ftk0;
-% 
-% if deltafk0>=0
-%     eloignement =1;
-% else
-%     eloignement=-1;
-% end
-
     %Méthode Gauss-Newton (xk1_est = xk0_est + deltaxk0_est)
-mk= 4;                      % Nombre de mesures de fréquences (doit etre >=3 pour pouvoir avoir assez d'equations)
-zk = [ftk0 +80 ftk0 +72 ftk0+83 ftk0+81];     % Mesures de mk frequences reçues à l'instant k
+mk= 4;                                         % Nombre de mesures de fréquences (doit etre >=3 pour pouvoir avoir assez d'equations)
+zk = [ftk0 +80 ftk0 +72 ftk0+83 ftk0+81];     % Mesures de mk frequences reçues au k° passage satellite
 
-sigma2k = 1;                % Variance du bruit
+sigma2k = 1;                                    % Variance du bruit
 Rk = sigma2k*eye(mk);
 
 
@@ -61,9 +52,14 @@ Xk_MAT(1,:) = xk0;
 
 for i=1:mk
     J= Jacobien_H(lambdak0,phik0,h,ftk0)';
-    gk0 = H(lambdak0,phik0,h,ftk0,1);
+
+    if(zk(i)>=0)                                             % Effet doppler positif donc le satellite se rapproche de la balise
+        gk0 = H(lambdak0,phik0,h,ftk0,1);
+    else
+        gk0 = H(lambdak0,phik0,h,ftk0,-1);
+    end
     
-    dxk0=inv(J'*inv(Rk)*J)*J'*inv(Rk)*(zk(i)-gk0); % calcul de dxo, formule 1.11
+    dxk0=inv(J'*inv(Rk)*J)*J'*inv(Rk)*(zk(i)-gk0);              % calcul de la petite variation pour raffiner l'estimation des coord
     
     xk1=xk0+dxk0;
     Xk_MAT(i+1,:)=xk1;

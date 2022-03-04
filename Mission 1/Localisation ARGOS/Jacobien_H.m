@@ -1,11 +1,11 @@
 function [J_H]=Jacobien_H(lambda,phi,h,ft)
 %Jacobienne de la fonction d'observation Doppler H
 
-tau = 120e-3;   % durée d'une mesure
+tau = 120e-3;                                       % durée d'une mesure
 RE = 6378.137e3;                                  % Taille du demi grand axe en m
 f = 1/298.257223563;                              % Aplatissement de l'ellipsoide
 RP = RE*(1-f);                                    % Valeur du demi-petit axe 
-                                          % Vitesse du satellite en m/s
+                                        
 c=physconst('LightSpeed');                        % Célérité de la lumière en m/s
 GE=RE+h; 
 GP=RP+h;
@@ -17,9 +17,9 @@ y=GE*cos(theta)*sin(lambda);
 z=GP*sin(theta);
 
 % informations balise 
-hb=0; %altitude
-phib=44.8059; %Latitude (Bordeaux)
-lambdab=-0.605349;% Longitude (Bordeaux)
+hb= h;                       %altitude
+phib=phi;                   %Latitude (Bordeaux)
+lambdab= lambda ;           % Longitude (Bordeaux)
 
 GEb=RE+hb;
 GPb=RP+hb;
@@ -29,10 +29,9 @@ thetab = atan((GP/GE)*tan(phib));
 xb=GEb*cos(thetab)*cos(lambdab); % x dans un repère cartésien 
 yb=GEb*cos(thetab)*sin(lambdab);
 zb=GPb*sin(thetab);
-vb=1.5; % vitesse balise
 
 % informations satellite : 
-hs=800e3;               %altitude
+hs=1500e3;               %altitude du satellite en basse orbite
 phis=44.8059;           %Latitude (Satellite)
 lambdas=-0.605349;      % Longitude (Satellite)
 
@@ -44,7 +43,7 @@ thetas = atan((GPs/GEs)*tan(phis));
 xs=GEs*cos(thetas)*cos(lambdas); 
 ys=GEs*cos(thetas)*sin(lambdas);
 zs=GPs*sin(thetas);
-vs=7e3;                 %vitesse du satellite
+vs=7e3;                         %vitesse du satellite
 
 zsf = zs + vs*tau;              %coordonnée selon z du satellite en fin de comptage
 xsf = xs;                       %coordonnées en x et y sont inchangées puisque le satellite ne bouge que selon z
