@@ -17,22 +17,25 @@ GP=RP+hs;
 
 ftk0 = 868e6;                   %Fréquence d'emission par la plateforme
 
-fr1 = ftk0 + 80;              %fréquence reçue au début d'un passage satellite
-fr2 = ftk0 + 80*15*60;        %fréquence reçue à la fin du même passage satellite
+% fr1 = ftk0 + 80;              %fréquence reçue au début d'un passage satellite
+% fr2 = ftk0 + 80*15*60;        %fréquence reçue à la fin du même passage satellite
 
-phik0 = atan((GE^2*c*(fr1/ftk0 -1))/(sqrt(abs(Vs^2-c^2*(fr1/ftk0 -1)))));   % Expression de la longitude en fonction de fr1 en radian
+%phik0 = atan((GE^2*c*(fr1/ftk0 -1))/(sqrt(abs(Vs^2-c^2*(fr1/ftk0 -1)))));   % Expression de la longitude en fonction de fr1 en radian
+phik0 = 44.8;
 
-disp(Vs^2-c^2*(fr1/ftk0 -1))
-lambdak0 = sin((GP^4*tan(phik0))/(GE^4)*sqrt(abs(Vs/c*(1-fr2/ftk0)-1)));   % Expression de la latitude en fonction de fr2 en radian
-disp(Vs/c*(1-fr2/ftk0)-1)
+%lambdak0 = sin((GP^4*tan(phik0))/(GE^4)*sqrt(abs(Vs/c*(1-fr2/ftk0)-1)));   % Expression de la latitude en fonction de fr2 en radian
+lambdak0 = -0.59; 
+h=0; %Balise en mer par exemple
 
-h=0;                                                                    %Balise en mer par exemple
-xk0=[lambdak0 phik0 h ftk0];
-
+xk0=[lambdak0 phik0 h ftk0]; %valeur de départ 
+variation=5;
     %Méthode Gauss-Newton (xk1_est = xk0_est + deltaxk0_est)
 
 mk= 4;                                         % Nombre de mesures de fréquences (doit etre >=3 pour pouvoir avoir assez d'equations)
-zk = [ftk0 +80 ftk0 +72 ftk0+83 ftk0+81];     % Mesures de mk frequences reçues au k° passage satellite
+fr0= H(lambdak0,phik0,h,ftk0,-1);
+var= [ (-variation + (2*variation) * rand(1))/100  (-variation + (2*variation) * rand(1))/100  (-variation + (2*variation) * rand(1))/100]
+zk = [fr0 (fr0+var(1)*fr0) (fr0+var(2)*fr0) (fr0+var(3)*fr0)];     % Mesures de mk frequences reçues au k° passage satellite
+
 
 
 sigma2k = 1;                                    % Variance du bruit
@@ -52,7 +55,7 @@ Rk = sigma2k*eye(mk);
 Xk_MAT = zeros(mk+1,4);
 Xk_MAT(1,:) = xk0;
 
-
+tabdxko=zeros(4,mk);
 for i=1:mk
     J= Jacobien_H(lambdak0,phik0,h,ftk0)';
 
@@ -63,17 +66,16 @@ for i=1:mk
     end
     
     dxk0=inv(J'*inv(Rk)*J)*J'*inv(Rk)*(zk(i)-gk0);              % calcul de la petite variation pour raffiner l'estimation des coord
-    
+    tabdxko(:,i)=dxk0;
     xk1=xk0+dxk0;
     Xk_MAT(i+1,:)=xk1;
     lambdak0 = xk1(1);
     phik0 = xk1(2);
     ftk0 =xk1(4);
+    xk0= [lambdak0 phik0 xk1(3) ftk0];
 end
 
-Xk_MAT(:,1:2)=Xk_MAT(:,1:2)*180/pi;
-
-
+%Xk_MAT(:,1:2)=Xk_MAT(:,1:2)*180/pi;
 
 
 
