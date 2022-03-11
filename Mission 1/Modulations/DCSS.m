@@ -6,6 +6,7 @@ clc
 SF = 7 ;            %Nombre de bits/symbole
 M=2^SF;
 
+Fse=10;
 B=600e3;            % Largeur de bande
 P= 14;              %Puissance du signal émis (en Dbm)
 Ts=M/B;            %Temps symbole
@@ -37,20 +38,25 @@ end
 Dp=[0,Dp];
 gammap = Dp/B;  
 
+%% SURECHANTILLONNE dun facteur 10
+%%
+
 preambule=[repmat(chirp_up,1,Nb_preambule_up), repmat(chirp_down,1,Nb_preambule_down)]; % Préambule 
 s=[];
 for k=1:length(gammap)
     s = [s exp(1j*2*pi.*time.*fc(time,gammap(k),B,Ts))]; % génération des chirps
 end
 s=[preambule s];
+%su=upsample(s,Fse);
+su=s;
 %% Canal
 h=1;
 
-y=filter(h,1,s);
+y=filter(h,1,su);
 
 %% Décalage temporel
-decalage_temporel = randi([0,5*M],1); % génération d'un décalage aléatoire
-%y= [zeros(1,decalage_temporel),y]; % décalage du signal : on rajoute des 0 devant
+decalage_temporel = randi([0,M-1],1); % génération d'un décalage aléatoire
+y= [zeros(1,decalage_temporel),y]; % décalage du signal : on rajoute des 0 devant
 %% Récepteur
 
 Py = mean(abs(y).^2); % Puissance instantanée du signal reçu
@@ -61,7 +67,10 @@ b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AW
 x = y + b; %ajout du bruit au signal
 
 %% Estimation du décalage temporel
-%test = preambule_detect(chirp_up,Nb_preambule_up,x,M,decalage_temporel);
+K_estime = preambule_detect(chirp_up,Nb_preambule_up,x,M,decalage_temporel); % estimation du décalage temporel
+synchro_temporelle= time_synchro(K_estime,Nb_preambule_up,Nb_preambule_down,x,M); % synchronisation temporelle
+fprintf("L'écart entre le décalage temporel théorique et celui trouvé est de %i \n",abs((K_estime)*M+decalage_temporel-synchro_temporelle))
+DR_esti = doppler_rate_esti(x,M,Nb_preambule_up,chirp_up,Ts); %estimation doppler rate
 %%
 
 temp=floor(length(x)/M); % Durée d'un chirp
@@ -70,19 +79,20 @@ x=x(1:temp*M); % on redimensionne x pour le reshape
 sig_reshaped=reshape(x,[M,temp]); % on met en colonne les chirps
 z=sig_reshaped.*chirp_up'; % multiplication par le chirp brut
 
-[max_fft, symbolesEstLoRa]=max(abs(fft(z, M, 1))); % argmax des FFT
+[max_fft, symbolesEstLoRa]=max(abs(fft(z))); % argmax des FFT
 symbolesEstLoRa = M-(symbolesEstLoRa(8:end)-1) ;% symboles estimés sans le préambule
+%symbolesEstLoRa = M-(symbolesEstLoRa-1) ;% symboles estimés sans le préambule
 % Amélio concavité sert que pour estimer le décalage doppler. 
-[symbole,maxi]= concave(z(:,8:end),symbolesEstLoRa,M); % amélioration de la localisation des max
+%[symbole,maxi]= concave(z(:,8:end),symbolesEstLoRa,M); % amélioration de la localisation des max
 for k=1:length(symbolesEstLoRa)-1
     symboleEst(k) =mod(symbolesEstLoRa(k+1)-symbolesEstLoRa(k),M); % calcul des symboles Sp 
-    new_symb_est(k)=round(mod(symbole(k+1)-symbole(k),M)); % calcul des symboles Sp
-end
+    %new_symb_est(k)=round(mod(symbole(k+1)-symbole(k),M)); % calcul des symboles Sp
+end 
 
 bit_est = int2bit(symboleEst,SF);%bits estimés sans le préambule méthode "classique"
-bit_est2 = int2bit(new_symb_est,SF);%bits estimés sans le préambule méthode algo concavité
+%bit_est2 = int2bit(new_symb_est,SF);%bits estimés sans le préambule méthode algo concavité
 BER = mean(abs(sb-bit_est(:)')); % BER avec méthode "classique" (argmax des fft)
-BER2=mean(abs(sb-bit_est2(:)')); % BER avec l'algo de concavité
+%BER2=mean(abs(sb-bit_est2(:)')); % BER avec l'algo de concavité
 
 %% Figures
 

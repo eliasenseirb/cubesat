@@ -1,4 +1,4 @@
-function [symb,Rw] = concave(z,Dp_estimes,M) % sret à trouver le décalage en fréquence
+function [symb,Rw] = concave(z,Dp_estimes,M) % sert à trouver le décalage en fréquence
     a_tab = Dp_estimes -1; % 
     b_tab = Dp_estimes +1 ;% Tableau des intervalles à étudier
     
