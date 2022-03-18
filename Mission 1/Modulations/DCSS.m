@@ -13,7 +13,9 @@ Ts=M/B;            %Temps symbole
 Ds = 1/Ts;         %Debit symbole
 Te = Ts/M;        %Période d'échantillonnage
 Nb_preambule_up = 5;
-Nb_preambule_down=2; % SFD
+Nb_preambule_down=1; % SFD
+N_sw = 2; % synchro word
+taille_preambule = Nb_preambule_down+Nb_preambule_up+N_sw;
 Nb_Chirp = 10; % nombre de Chirp qu'on souhaite dans le signal
 SNR_dB = 40;           %Rapport signal sur bruit au niveau du récepteur
 Nbbits = SF*Nb_Chirp;     %Nombre de bits générés
@@ -41,7 +43,7 @@ gammap = Dp/B;
 %% SURECHANTILLONNE dun facteur 10
 %%
 
-preambule=[repmat(chirp_up,1,Nb_preambule_up), repmat(chirp_down,1,Nb_preambule_down)]; % Préambule 
+preambule=[repmat(chirp_up,1,Nb_preambule_up),repmat(chirp_up,1,N_sw) ,repmat(chirp_down,1,Nb_preambule_down)]; % Préambule 
 s=[];
 for k=1:length(gammap)
     s = [s exp(1j*2*pi.*time.*fc(time,gammap(k),B,Ts))]; % génération des chirps
@@ -57,6 +59,8 @@ y=filter(h,1,su);
 %% Décalage temporel
 decalage_temporel = randi([0,M-1],1); % génération d'un décalage aléatoire
 y= [zeros(1,decalage_temporel),y]; % décalage du signal : on rajoute des 0 devant
+freq =40e3;
+y = y.*exp(-1j*2*pi*freq*(1:length(y)));
 %% Récepteur
 
 Py = mean(abs(y).^2); % Puissance instantanée du signal reçu
@@ -67,21 +71,27 @@ b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AW
 x = y + b; %ajout du bruit au signal
 
 %% Estimation du décalage temporel
-K_estime = preambule_detect(chirp_up,Nb_preambule_up,x,M,decalage_temporel); % estimation du décalage temporel
-synchro_temporelle= time_synchro(K_estime,Nb_preambule_up,Nb_preambule_down,x,M); % synchronisation temporelle
-fprintf("L'écart entre le décalage temporel théorique et celui trouvé est de %i \n",abs((K_estime)*M+decalage_temporel-synchro_temporelle))
-DR_esti = doppler_rate_esti(x,M,Nb_preambule_up,chirp_up,Ts); %estimation doppler rate
-%%
+K_estime = preambule_detect(chirp_up,Nb_preambule_up,N_sw,x,M,decalage_temporel); % estimation du décalage temporel
+synchro_temporelle= time_synchro(K_estime-taille_preambule,Nb_preambule_up,N_sw,x,M); % synchronisation temporelle
+fprintf("L'écart entre le décalage temporel théorique et celui trouvé est de %i \n",(decalage_temporel-synchro_temporelle))
 
+%%
+x = x(synchro_temporelle:end);
+DR_esti = doppler_rate_esti(x,M,Nb_preambule_up,chirp_up,Ts); %estimation doppler rate
 temp=floor(length(x)/M); % Durée d'un chirp
 x=x(1:temp*M); % on redimensionne x pour le reshape
 
 sig_reshaped=reshape(x,[M,temp]); % on met en colonne les chirps
+for i=1:Nb_preambule_up
+    rdc(:,i) = sig_reshaped(:,i).*exp(-1j*DR_esti*Ts^2*(0:M-1).^2)'; % Dr compensation
+end
+nu_est = frac_CFO(rdc,Nb_preambule_up); % cfo estimation
+lambda_est = STO_esti(rdc,M,chirp_up,nu_est,Nb_preambule_up);
 z=sig_reshaped.*chirp_up'; % multiplication par le chirp brut
 
 [max_fft, symbolesEstLoRa]=max(abs(fft(z))); % argmax des FFT
-symbolesEstLoRa = M-(symbolesEstLoRa(8:end)-1) ;% symboles estimés sans le préambule
-%symbolesEstLoRa = M-(symbolesEstLoRa-1) ;% symboles estimés sans le préambule
+symbolesEstLoRa = M-(symbolesEstLoRa(taille_preambule:end)-1) ;% symboles estimés sans le préambule
+
 % Amélio concavité sert que pour estimer le décalage doppler. 
 %[symbole,maxi]= concave(z(:,8:end),symbolesEstLoRa,M); % amélioration de la localisation des max
 for k=1:length(symbolesEstLoRa)-1
