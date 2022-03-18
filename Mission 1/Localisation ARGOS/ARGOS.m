@@ -82,6 +82,7 @@ end
 hold off;
  
 
+
 %% Méthode des moindres carrés
     %Estimation des coordonnées initiales
 
@@ -95,19 +96,20 @@ GE=RE+hs;
 GP=RP+hs;
 
 ft0 = 868e6;                   %Fréquence d'emission par la plateforme
+fr1 = ft0 + 5e3;               %Fréquence reçue au début du premier
+fr2 = ft0 - 7e3;
+
+lambda = linspace(-180*d2r,180*d2r,1000);
+figure()
+plot(lambda,func_lambda(lambda,fr1,fr2,ft0))
 
 
-% fr1 = ftk0 + 5000;              %fréquence reçue au début d'un passage satellite
-% fr2 = ftk0 + 5000*15*60;        %fréquence reçue à la fin du même passage satellite
+phi0 = atan((GE^2/GP^2*c*(fr1/ft0 -1))/(sqrt((Vs^2-c^2*(fr1/ft0 -1)^2))));   % Expression de la longitude en fonction de fr1 en radian
 
-% phik0 = atan((GE^2*c*(fr1/ftk0 -1))/(sqrt(abs(Vs^2-c^2*(fr1/ftk0 -1)))));   % Expression de la longitude en fonction de fr1 en radian
-
-%disp(Vs^2-c^2*(fr1/ftk0 -1))
-
-h=0;                                                                    %Balise en mer par exemple
-lambda0 = 44.833328;
-phi0 = -0.56667;
-x0=[lambda0 phi0 h ft0];
+h0=0;                                                                    %Balise en mer par exemple
+lambda0 = 44.833328*d2r;
+phi0 = -0.56667*d2r;
+x0=[lambda0;phi0;h0;ft0];
 
 
     % Raffinement itératif (Méthode Gauss-Newton)
@@ -115,9 +117,34 @@ mk= 4;                                                                          
 % n_pass_satellite = 4;
 % Z = [5000 1000 -5000 -8000;3000 2000 -4000 -9000;1000 500 -1000 -9500;3000 2500 -4000 -7500];       % Matrice contenant sur chaque ligne mk mesures d'effets Doppler sur un passage satellite
 
-zk = [5000 1000 -5000 -8000];
-date = [100 300 700 850];  %dates en s
+S_lat_rad = S_lat*d2r;
+S_long_rad = S_long*d2r;
 
+z = [ft0 + 5000;ft0+ 1000;ft0-5000;ft0-8000];
+date_mes = [];
+g=zeros(mk,1);
+
+for k=1:mk
+    if(z(k)>=0)
+        g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,1);
+    else
+        g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,-1);
+    end
+end
+
+sigma2 = 1;                                    % Variance du bruit
+R = sigma2*eye(mk);
+
+J = zeros(mk,4);
+for k=1:mk
+    J(k,:) = Jacobien_H(lambda0,phi0,h0,ft0,S_long(154+(k-1)),S_lat(154 + (k-1)),H)';
+end
+
+delta_x = inv(J'*inv(R)*J)*J'*inv(R)*(z-g);
+x1 = x0 + delta_x;
+
+
+        
 
 
 % for i=1:mk
@@ -127,8 +154,6 @@ date = [100 300 700 850];  %dates en s
 % end
 
 
-% sigma2k = 1;                                    % Variance du bruit
-% Rk = sigma2k*eye(mk);
 
 
 % for j=1:mk
@@ -164,10 +189,6 @@ date = [100 300 700 850];  %dates en s
 % end
 % 
 % Xk_MAT(:,1:2)=Xk_MAT(:,1:2)*180/pi;
-
-
-
-
 
 
 

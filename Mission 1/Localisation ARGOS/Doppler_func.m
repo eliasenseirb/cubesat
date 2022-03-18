@@ -1,6 +1,6 @@
-function [fr]=H(lambda,phi,h,ft,eloignement)
-%fonction d'observation doppler de paramètres longitude lambda, altitude h,
-%latitude phi et frequence de transmission du signal, eloignement vaut -1
+function [fr]=Doppler_func(lambda,phi,h,ft,eloignement)
+%fonction d'observation doppler de paramètres longitude lambda en radians, altitude h,
+%latitude phi en radians et frequence de transmission du signal, eloignement vaut -1
 %si le satellite s'éloigne du mobile et +1 s'ils se rapprochent
 
 RE = 6378.137e3;                                  % Taille du demi grand axe en m
