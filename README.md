@@ -1,6 +1,6 @@
 # The Cubesat Project
 
-![alt text](https://github.com/eliasenseirb/cubesat/blob/main/img/CubeSatlogo.pngraw=true)
+![alt text](https://github.com/eliasenseirb/cubesat/blob/main/img/CubeSatlogo.png?raw=true)
 
 ## Introduction
 
