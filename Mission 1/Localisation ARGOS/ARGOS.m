@@ -95,21 +95,26 @@ hs=1500e3;                                        % Altitude du satellite en bas
 GE=RE+hs; 
 GP=RP+hs;
 
-ft0 = 868e6;                   %Fréquence d'emission par la plateforme
-fr1 = ft0 + 5e3;               %Fréquence reçue au début du premier
+ft0 = 868e6;                   % Fréquence d'emission par la plateforme
+fr1 = ft0 + 5e3;               % Fréquence reçue au début du premier
 fr2 = ft0 - 7e3;
+R = 6371e3;                    % Rayon de la terre
+etha = 30*d2r;                 % Angle entre l'axe joignant le sommet du cône et le centre de la sphère avec l'axe Z
+alpha = 40*d2r;                % Azimuth (angle) du Nord vers l'axe du cone
+phis = 50*d2r;                 % Latitude au point sous-sommet du cone
+lambdasat = S_long(1)*d2r;
 
-lambda = linspace(-180*d2r,180*d2r,1000);
-figure()
-plot(lambda,func_lambda(lambda,fr1,fr2,ft0))
+
+[phi0,lambda0]=init_localisation(Vs,fr1,ft0,hs,R,etha,alpha,phis,lambdasat);
+
+phi0deg = phi0*r2d;
+lambda0deg = lambda0*r2d;
 
 
-phi0 = atan((GE^2/GP^2*c*(fr1/ft0 -1))/(sqrt((Vs^2-c^2*(fr1/ft0 -1)^2))));   % Expression de la longitude en fonction de fr1 en radian
-
-h0=0;                                                                    %Balise en mer par exemple
-lambda0 = 44.833328*d2r;
-phi0 = -0.56667*d2r;
-x0=[lambda0;phi0;h0;ft0];
+% h0=0;                                                                    %Balise en mer par exemple
+% lambda0 = 44.833328*d2r;
+% phi0 = -0.56667*d2r;
+% x0=[lambda0;phi0;h0;ft0];
 
 
     % Raffinement itératif (Méthode Gauss-Newton)
