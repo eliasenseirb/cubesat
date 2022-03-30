@@ -33,7 +33,7 @@ latmin=-90;%-90;
 latmax=90;%90;
 
 T=(2*pi)*(sqrt((a^3)/u)); %The Satellite period around the Earth in seconds
-dT=T/20; %Time step
+dT=T/10; %Time step
 N=1; % number of turns around earth
 T_f=N*T;
 time = 0:dT:T_f-dT;
@@ -61,7 +61,7 @@ for k = 1:length(S_lat)
         plotm(S_lat(k),S_long(k),'rs');
     end
 end
-
+plotm(44.8,-0.58,'ys'); % localisation d'une balise 
 hold on
 
 
@@ -75,7 +75,7 @@ for t=1:length(Ecc)
                 
         rov=FoV(Ecc(t),a, e, w, eps);
         [latc,longc] = scircle1(S_lat(t),S_long(t),rov);
-        h2=plotm(latc,longc,'b-');
+        h2=plotm(latc,longc,'b');
 
     end
 end
