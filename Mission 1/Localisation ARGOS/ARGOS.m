@@ -33,7 +33,7 @@ latmin=-90;%-90;
 latmax=90;%90;
 
 T=(2*pi)*(sqrt((a^3)/u)); %The Satellite period around the Earth in seconds
-dT=T/10; %Time step
+dT=T/20; %Time step
 N=1; % number of turns around earth
 T_f=N*T;
 time = 0:dT:T_f-dT;
@@ -61,7 +61,7 @@ for k = 1:length(S_lat)
         plotm(S_lat(k),S_long(k),'rs');
     end
 end
-plotm(44.8,-0.58,'ys'); % localisation d'une balise 
+
 hold on
 
 
@@ -75,12 +75,13 @@ for t=1:length(Ecc)
                 
         rov=FoV(Ecc(t),a, e, w, eps);
         [latc,longc] = scircle1(S_lat(t),S_long(t),rov);
-        h2=plotm(latc,longc,'b');
+        h2=plotm(latc,longc,'b-');
 
     end
 end
 hold off;
  
+
 
 %% Méthode des moindres carrés
     %Estimation des coordonnées initiales
@@ -94,20 +95,26 @@ hs=1500e3;                                        % Altitude du satellite en bas
 GE=RE+hs; 
 GP=RP+hs;
 
-ft0 = 868e6;                   %Fréquence d'emission par la plateforme
+ft0 = 868e6;                   % Fréquence d'emission par la plateforme
+fr1 = ft0 + 5e3;               % Fréquence reçue au début du premier
+fr2 = ft0 - 7e3;
+R = 6371e3;                    % Rayon de la terre
+etha = 30*d2r;                 % Angle entre l'axe joignant le sommet du cône et le centre de la sphère avec l'axe Z
+alpha = 40*d2r;                % Azimuth (angle) du Nord vers l'axe du cone
+phis = 50*d2r;                 % Latitude au point sous-sommet du cone
+lambdasat = S_long(1)*d2r;
 
 
-% fr1 = ftk0 + 5000;              %fréquence reçue au début d'un passage satellite
-% fr2 = ftk0 + 5000*15*60;        %fréquence reçue à la fin du même passage satellite
+[phi0,lambda0]=init_localisation(Vs,fr1,ft0,hs,R,etha,alpha,phis,lambdasat);
 
-% phik0 = atan((GE^2*c*(fr1/ftk0 -1))/(sqrt(abs(Vs^2-c^2*(fr1/ftk0 -1)))));   % Expression de la longitude en fonction de fr1 en radian
+phi0deg = phi0*r2d;
+lambda0deg = lambda0*r2d;
 
-%disp(Vs^2-c^2*(fr1/ftk0 -1))
 
-h=0;                                                                    %Balise en mer par exemple
-lambda0 = 44.833328;
-phi0 = -0.56667;
-x0=[lambda0 phi0 h ft0];
+% h0=0;                                                                    %Balise en mer par exemple
+% lambda0 = 44.833328*d2r;
+% phi0 = -0.56667*d2r;
+% x0=[lambda0;phi0;h0;ft0];
 
 
     % Raffinement itératif (Méthode Gauss-Newton)
@@ -115,8 +122,34 @@ mk= 4;                                                                          
 % n_pass_satellite = 4;
 % Z = [5000 1000 -5000 -8000;3000 2000 -4000 -9000;1000 500 -1000 -9500;3000 2500 -4000 -7500];       % Matrice contenant sur chaque ligne mk mesures d'effets Doppler sur un passage satellite
 
-zk = [5000 1000 -5000 -8000];
+S_lat_rad = S_lat*d2r;
+S_long_rad = S_long*d2r;
 
+z = [ft0 + 5000;ft0+ 1000;ft0-5000;ft0-8000];
+date_mes = [];
+g=zeros(mk,1);
+
+for k=1:mk
+    if(z(k)>=0)
+        g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,1);
+    else
+        g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,-1);
+    end
+end
+
+sigma2 = 1;                                    % Variance du bruit
+R = sigma2*eye(mk);
+
+J = zeros(mk,4);
+for k=1:mk
+    J(k,:) = Jacobien_H(lambda0,phi0,h0,ft0,S_long(154+(k-1)),S_lat(154 + (k-1)),H)';
+end
+
+delta_x = inv(J'*inv(R)*J)*J'*inv(R)*(z-g);
+x1 = x0 + delta_x;
+
+
+        
 
 
 % for i=1:mk
@@ -126,8 +159,6 @@ zk = [5000 1000 -5000 -8000];
 % end
 
 
-% sigma2k = 1;                                    % Variance du bruit
-% Rk = sigma2k*eye(mk);
 
 
 % for j=1:mk
@@ -163,3 +194,4 @@ zk = [5000 1000 -5000 -8000];
 % end
 % 
 % Xk_MAT(:,1:2)=Xk_MAT(:,1:2)*180/pi;
+

@@ -1,4 +1,7 @@
 # The Cubesat Project
+
+![alt text](https://github.com/eliasenseirb/cubesat/blob/main/img/CubeSatlogo.png?raw=true)
+
 ## Introduction
 
 A cubesat is a nanosatellite, its dimension is a 10cm-length cube. A cube of this size is also called a 1U. These satellites are located in the Low Earth Orbit (LEO) which is between 200 and 2 000 km above Earth. The main goal of this project is to establish a communication between an IoT device and the Cubesat. There are 2 main interactions: a beacon is sending a signal to the satellite and under precise conditions the satellite will answer with a Bluetooth message that will be broadcasted.

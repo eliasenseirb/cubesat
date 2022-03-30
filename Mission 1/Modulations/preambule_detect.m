@@ -1,10 +1,10 @@
-function [K_est] = preambule_detect(chirp,Np,sig,M,val_decalage)
+function [K_est] = preambule_detect(chirp,Np,Nsw,sig,M,val_decalage)
     %detection du preambule
     
     temp = floor(length(sig)/M); %durée d'un chirp
     sig = sig(1:M*temp); % on coupe notre signal pour pouvoir le mettre en mode matrice (un chirp = une colonne)
     sig_Mat = reshape(sig,M,temp); % on transforme la matrice pour avoir des chirps en colonnes
-    sig_Mat_Detect = sig_Mat.*chirp'; % On multiplie chaque colonne par le chirp brut conjugué
+    sig_Mat_Detect = sig_Mat.*conj(chirp).'; % On multiplie chaque colonne par le chirp brut conjugué
     
     z = fft(sig_Mat_Detect); % calcul de la fft de chaque colonne
     
@@ -30,10 +30,10 @@ function [K_est] = preambule_detect(chirp,Np,sig,M,val_decalage)
         end
     end
     
-    sfd_locate = start_ind+Np; % indice du premier symbole sfd
-    sig_mat_sfd = sig_Mat(:,sfd_locate:sfd_locate+1).*chirp'; % on applique des up chirps la ou doit se situer notre sfd
-    [maxval,~] = max(abs(fft(sig_mat_sfd))); % calcul de l'approx du décalage temporel 
+    sfd_locate = start_ind+Np+Nsw; % indice du symbole sfd
+    sig_sfd = sig_Mat(:,sfd_locate-1:sfd_locate+1).*chirp'; % on applique des up chirps la ou doit se situer notre sfd
+    [maxval,~] = max(abs(fft(sig_sfd))); % calcul de l'approx du décalage temporel 
     [~,T_section_location] = max(maxval); 
-    K_est = T_section_location+sfd_locate-1;
+    K_est = T_section_location+sfd_locate;
 end
 
