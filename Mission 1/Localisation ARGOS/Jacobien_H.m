@@ -1,4 +1,4 @@
-function [J_H]=Jacobien_H(lambda,phi,h,ft)
+function [J_H]=Jacobien_H(lambda,phi,h,ft,date)
 %Jacobienne de la fonction d'observation Doppler H
 
 tau = 120e-3;                                       % durée d'une mesure
@@ -16,19 +16,6 @@ x=GE*cos(theta)*cos(lambda);
 y=GE*cos(theta)*sin(lambda);
 z=GP*sin(theta);
 
-% informations balise 
-hb= h;                       %altitude
-phib=phi;                   %Latitude (Bordeaux)
-lambdab= lambda ;           % Longitude (Bordeaux)
-
-GEb=RE+hb;
-GPb=RP+hb;
-thetab = atan((GP/GE)*tan(phib));
-
-% coordonnées balise
-xb=GEb*cos(thetab)*cos(lambdab); % x dans un repère cartésien 
-yb=GEb*cos(thetab)*sin(lambdab);
-zb=GPb*sin(thetab);
 
 % informations satellite : 
 hs=1500e3;               %altitude du satellite en basse orbite
@@ -49,15 +36,18 @@ zsf = zs + vs*tau;              %coordonnée selon z du satellite en fin de comp
 xsf = xs;                       %coordonnées en x et y sont inchangées puisque le satellite ne bouge que selon z
 ysf = ys;
 
-Rf= sum([xsf ysf zsf].*[xb yb zb]); %distance satellite-balise en fin de comptage
-Rd= sum([xs ys zs].*[xb yb zb]);    %distance satellite-balise en début de comptage
-vr = (Rf-Rd)/tau;                   % approximation de la vitesse radiale su satellite
+Rf = sqrt((xsf-xb)^2 + (ysf-yb)^2 + (zsf -zb)^2);  %distance satellite-balise en fin de comptage
+Rd = sqrt((xs-xb)^2 + (ys-yb)^2 + (zs-zb)^2);   %distance satellite-balise en début de comptage
+
+vr = abs((Rf-Rd)/tau);                          % approximation de la vitesse radiale du satellite
+disp(vr)
+
 
 dH_dxyz = (ft/c*tau)*[((x-xsf)/Rf-(x-xs)/Rd) ((y-ysf)/Rf-(y-ys)/Rd) ((z-zsf)/Rf-(z-zs)/Rd)];
 
 dH_dft = 1- vr/c;
 
-dtheta_dphi = (GP/GE)/((1-GP^2/GE^2)*cos(phi)^2+GP^2/GE^2);
+dtheta_dphi = (GP/GE)/((1-GP^2/GE^2)*cos(phi)^2+(GP^2)/(GE^2));
 
 dxyz_dlambdaphih = [-GE*cos(theta)*sin(lambda) -GE*sin(theta)*cos(lambda)*dtheta_dphi cos(theta)*sin(lambda);GE*cos(theta)*cos(lambda) -GE*sin(theta)*sin(lambda)*dtheta_dphi cos(theta)*sin(lambda);0 GP*cos(theta)*dtheta_dphi sin(theta)];
 
