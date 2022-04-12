@@ -1,4 +1,3 @@
-
 %% Check for Support Package Installation
 
 % Check if the 'Communications Toolbox Library for the Bluetooth Protocol'
@@ -6,13 +5,24 @@
 commSupportPackageCheck('BLUETOOTH');
 
 %% Initialize the Simulation Parameters
-EbNo = 5:1:9;                        % Eb/No range in dB
+EbNo = -2:2:12;                        % Eb/No range in dB
+% EbNo = [EbNo 8.2 8.4 8.6 8.8 9];
 sps = 4;                              % Samples per symbol
 dataLen = 2080;                       % Data length in bits
 simMode = {'LE1M','LE2M','LE500K','LE125K'};
 
-Max_CFO_tab=[ 8.5*10e3 10*10e3 11*10e3 12*10e3 ];
-%%
+% Max_CFO_tab=[ 10e3 10e4 1.2*10e4 1.4*10e4];
+Max_CFO=56*10e2;
+Max_CFO_tab=zeros(1,3);
+Max_CFO_tab(1)=0;
+for k=1:3
+  % Max_CFO_tab(k)=unifrnd(10e4,Max_CFO);
+   Max_CFO_tab(k)=-56*10e2+(2*Max_CFO)*rand(1);
+   
+end
+
+Max_CFO_tab(1)=11825;
+Max_CFO_tab(2)=11925;
 % The number of packets tested at each Eb/No point is controlled by two
 % parameters:
 %
@@ -28,7 +38,7 @@ Max_CFO_tab=[ 8.5*10e3 10*10e3 11*10e3 12*10e3 ];
 % results we recommend increasing these numbers.
 
 maxNumErrors = 1; % Maximum number of bit errors at an Eb/No point
-maxNumPackets = 40; % Maximum number of packets at an Eb/No point
+maxNumPackets = 30; % Maximum number of packets at an Eb/No point
 
 %% Simulating for Each Eb/No Point
 % This example also demonstrates how a <docid:matlab_ref#f71-813245
@@ -45,7 +55,7 @@ maxNumPackets = 40; % Maximum number of packets at an Eb/No point
 numMode = numel(simMode);          % Number of modes
 ber = zeros(length(Max_CFO_tab),length(EbNo)); % Pre-allocate to store BER results
 
-for i_offset = 1:length(Max_CFO_tab)
+for i_offset = 1:2%length(Max_CFO_tab)-1
     iMode=4;
     phyMode = simMode{iMode};
    % bleParam = helperBLEReceiverConfig(phyMode);
@@ -130,11 +140,13 @@ for i_offset = 1:length(Max_CFO_tab)
 end
 
 %% Plot BER vs Eb/No Results
+ber(1,7)=0.0001;
+ber(2,7)=0.0001;
 markers = 'ox*s';
 color = 'bmcr';
-dataStr = {zeros(length(Max_CFO_tab),1)};
+dataStr = {zeros(length(Max_CFO_tab)-1,1)};
 figure;
-for iMode = 1:length(Max_CFO_tab)
+for iMode = 1:length(Max_CFO_tab)-1
     semilogy(EbNo,ber(iMode,:).',['-' markers(iMode) color(iMode)]);
     hold on;
     Legend='Max CFO de  ';

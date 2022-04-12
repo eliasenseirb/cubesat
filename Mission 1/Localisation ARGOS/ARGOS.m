@@ -178,4 +178,7 @@ figure(1)
 plot(Xk_MAT(:,1),Xk_MAT(:,2),'*')
 title("Evolution de la position au fil des itérations")
 xlabel("Longitude (°)")
+
 xlabel("Latitude (°)")
+
+
