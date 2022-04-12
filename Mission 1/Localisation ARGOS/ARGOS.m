@@ -5,12 +5,9 @@ close all;
 addpath("..\..\satellite_trajectory_link_budget")
 
 %Simulation satellite
-
 format long;
 
 warning('off','all');
-
-
 
 %% Constants
 R=6378;         %Earth radius
@@ -39,8 +36,6 @@ T_f=N*T;
 time = 0:dT:T_f-dT;
 
 %% Output
-
-
 %Satellite Ground Track
 disp('The Simulator is running satrack.m function');
 [S_lat, S_long, Ecc, E_time] = satrackFoV(a, e, i, omega, w, theta, UTC,time,T);
@@ -64,10 +59,6 @@ end
 
 hold on
 
-
-
-
-
 disp('The Simulator is drawing the Field of View along Satellite trajectory and stores its lat/long coordinates in LATC/LONGC matrices ');
 
 for t=1:length(Ecc)
@@ -84,8 +75,7 @@ hold off;
 
 
 %% Méthode des moindres carrés
-    %Estimation des coordonnées initiales
-
+%Estimation des coordonnées initiales
 RE = 6378.137e3;                                  % Taille du demi grand axe en m
 f = 1/298.257223563;                              % Aplatissement de l'ellipsoide
 RP = RE*(1-f);  
@@ -105,93 +95,87 @@ phis = 50*d2r;                 % Latitude au point sous-sommet du cone
 lambdasat = S_long(1)*d2r;
 
 
-[phi0,lambda0]=init_localisation(Vs,fr1,ft0,hs,R,etha,alpha,phis,lambdasat);
-
-phi0deg = phi0*r2d;
-lambda0deg = lambda0*r2d;
-
-
-% h0=0;                                                                    %Balise en mer par exemple
-% lambda0 = 44.833328*d2r;
-% phi0 = -0.56667*d2r;
-% x0=[lambda0;phi0;h0;ft0];
+% [phi0,lambda0]=init_localisation(Vs,fr1,ft0,hs,R,etha,alpha,phis,lambdasat);
+% 
+% phi0deg = phi0*r2d;
+% lambda0deg = lambda0*r2d;
 
 
-    % Raffinement itératif (Méthode Gauss-Newton)
-mk= 4;                                                                                              % Nombre de mesures de fréquences sur un passage satellite (doit etre >=3 pour pouvoir avoir assez d'equations)
+% Raffinement itératif (Méthode Gauss-Newton)
+h0=0;                                                                    %Balise en mer par exemple
+lambda0 = 44.833328*d2r;
+phi0 = -0.56667*d2r;
+x0=[lambda0;phi0;h0;ft0];
+mk= 4;                                                                                              % Nombre de mesures de fréquences sur un passage satellite (doit etre >=3 pour avoir assez d'equations)
+
+% Test avec matrices
+
 % n_pass_satellite = 4;
-% Z = [5000 1000 -5000 -8000;3000 2000 -4000 -9000;1000 500 -1000 -9500;3000 2500 -4000 -7500];       % Matrice contenant sur chaque ligne mk mesures d'effets Doppler sur un passage satellite
-
-S_lat_rad = S_lat*d2r;
-S_long_rad = S_long*d2r;
-
-z = [ft0 + 5000;ft0+ 1000;ft0-5000;ft0-8000];
-date_mes = [];
-g=zeros(mk,1);
-
-for k=1:mk
-    if(z(k)>=0)
-        g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,1);
-    else
-        g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,-1);
-    end
-end
-
-sigma2 = 1;                                    % Variance du bruit
-R = sigma2*eye(mk);
-
-J = zeros(mk,4);
-for k=1:mk
-    J(k,:) = Jacobien_H(lambda0,phi0,h0,ft0,S_long(154+(k-1)),S_lat(154 + (k-1)),H)';
-end
-
-delta_x = inv(J'*inv(R)*J)*J'*inv(R)*(z-g);
-x1 = x0 + delta_x;
-
-
-        
-
-
-% for i=1:mk
-%     sigma2 = 2;
-%     v = sqrt(sigma2)*randn(1,4);
-%     G(i,:) = Z(i,:)-v;
-% end
-
-
-
-
-% for j=1:mk
-%     gk0(j,:)= H(lambdak0,phik0,h,H(lambdak0,phik0,h,ftk0,1)-zk(j),1);
-% end
-
-% J=zeros(mk,size(zk,1));
+% %Z = [5000 1000 -5000 -8000;3000 2000 -4000 -9000;1000 500 -1000 -9500;3000 2500 -4000 -7500];       % Matrice contenant sur chaque ligne mk mesures d'effets Doppler sur un passage satellite
+% 
+% S_lat_rad = S_lat*d2r;
+% S_long_rad = S_long*d2r;
+% 
+% z = [ft0+5000;ft0+1000;ft0-5000;ft0-8000];
+% g=zeros(mk,1);
+% 
 % for k=1:mk
-%     J(k,:)=Jacobien_H(lambdak0,phik0,h,H(lambdak0,phik0,h,ftk0,1)-zk(k));
-%     
-% end
-
-% Xk_MAT = zeros(mk+1,4);
-% Xk_MAT(1,:) = xk0;
-% 
-% for i=1:mk
-%     J= Jacobien_H(lambdak0,phik0,h,ftk0)';
-% 
-%     if(zk(i)>=0)                                             % Effet doppler positif donc le satellite se rapproche de la balise
-%         gk0 = H(lambdak0,phik0,h,ftk0,1);
+%     if(z(k)-ft0>=0)
+%         g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,1);
 %     else
-%         gk0 = H(lambdak0,phik0,h,ftk0,-1);
+%         g(k,1) = Doppler_func(lambda0,phi0,h0,ft0,-1);
 %     end
-%     
-%     dxk0=inv(J'*inv(Rk)*J)*J'*inv(Rk)*(zk(i)-gk0);              % calcul de la petite variation pour raffiner l'estimation des coord
-%     
-%     xk1=xk0+dxk0;
-%     Xk_MAT(i+1,:)=xk1;
-%     lambdak0 = xk1(1);
-%     phik0 = xk1(2);
-%     ftk0 =xk1(4);
-%     xk0=[lambdak0 phik0 xk1(3) ftk0];
 % end
 % 
-% Xk_MAT(:,1:2)=Xk_MAT(:,1:2)*180/pi;
+% sigma2 = 1;                                    % Variance du bruit
+% R = sigma2*eye(mk);
+% 
+% J = zeros(mk,4);
+% for k=1:mk
+%     J(k,:) = Jacobien_H(lambda0,phi0,h0,ft0,S_long(10+(k-1)),S_lat(10 + (k-1)),H)';
+% end
+% 
+% delta_x = inv(J'*inv(R)*J)*J'*inv(R)*(z-g);
+% x1 = x0 + delta_x;
 
+
+% Test sans matrices
+z = [ft0+5000;ft0+1000;ft0-5000;ft0-8000];
+x0=[lambda0 phi0 h0 ft0];
+
+Xk_MAT = zeros(mk+1,4);
+Xk_MAT(1,:) = x0;
+
+for i=1:mk
+    J= Jacobien_H(lambda0,phi0,h0,ft0,S_long(10+(i-1)),S_lat(10 + (i-1)),H)';
+    sigma2 = 2;                                    % Variance du bruit
+    R = sigma2*eye(mk);
+
+    if(z(i)-ft0>=0)                                             % Effet doppler positif donc le satellite se rapproche de la balise
+        g = Doppler_func(lambda0,phi0,h0,ft0,1);
+    else
+        g = Doppler_func(lambda0,phi0,h0,ft0,-1);
+    end
+    
+    dxk0=inv(J'*inv(R)*J)*J'*inv(R)*(z(i)-g);              % calcul de la petite variation pour raffiner l'estimation des coord
+    disp( "Jacobienne : " +inv(J'*inv(R)*J)*J'*inv(R))
+    disp("g : "+ g )
+    disp("z et doppler func :  " +(z(i)-g) )
+    
+    x1=x0+dxk0;
+
+    Xk_MAT(i+1,:)=x1;
+    lambda0 = x1(1);
+    phi0 = x1(2);
+    h0 = x1(3);
+    ft0 =x1(4);
+    x0=[lambda0 phi0 h0 ft0];
+end
+
+Xk_MAT(:,1:2) = Xk_MAT(:,1:2)*r2d;
+
+figure(1)
+plot(Xk_MAT(:,1),Xk_MAT(:,2),'*')
+title("Evolution de la position au fil des itérations")
+xlabel("Longitude (°)")
+xlabel("Latitude (°)")

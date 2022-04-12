@@ -60,9 +60,9 @@ for i=1:mk
     J= Jacobien_H(lambdak0,phik0,h,ftk0)';
 
     if(zk(i)>=0)                                             % Effet doppler positif donc le satellite se rapproche de la balise
-        gk0 = H(lambdak0,phik0,h,ftk0,1);
+        gk0 = H(lambdak0,phik0,h,ftk0)%,1);
     else
-        gk0 = H(lambdak0,phik0,h,ftk0,-1);
+        gk0 = H(lambdak0,phik0,h,ftk0)%,-1);
     end
     
     dxk0=inv(J'*inv(Rk)*J)*J'*inv(Rk)*(zk(i)-gk0);              % calcul de la petite variation pour raffiner l'estimation des coord

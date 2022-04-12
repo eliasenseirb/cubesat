@@ -45,8 +45,8 @@ elseif(val_racine2 >=0 && val_racine1 <0)
 elseif(val_racine1 >=0 && val_racine2)
 end
 
-disp("Z2_0 : " +Z2_0)
-disp("Z2_L : " +Z2_L)
+%disp("Z2_0 : " +Z2_0)
+%disp("Z2_L : " +Z2_L)
 
 Z2 =Z2_L;
 
