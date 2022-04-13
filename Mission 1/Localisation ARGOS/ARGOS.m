@@ -89,22 +89,40 @@ ft0 = 868e6;                   % Fréquence d'emission par la plateforme
 fr1 = ft0 + 5e3;               % Fréquence reçue au début du premier
 fr2 = ft0 - 7e3;
 R = 6371e3;                    % Rayon de la terre
-etha = 30*d2r;                 % Angle entre l'axe joignant le sommet du cône et le centre de la sphère avec l'axe Z
-alpha = 40*d2r;                % Azimuth (angle) du Nord vers l'axe du cone
-phis = 50*d2r;                 % Latitude au point sous-sommet du cone
+etha = 15*d2r;                 % Angle entre l'axe joignant le sommet du cône et le centre de la sphère avec l'axe Z
+phis = 70*d2r;                 % Latitude au point sous-sommet du cone
 lambdasat = S_long(1)*d2r;
+phisat = S_lat(1)*d2r;
+rov=FoV(Ecc(1),a, e, w, eps);   %rov :the radius of the Field of View in degrees.
+[latc,longc] = scircle1(S_lat(1),S_long(1),rov);
 
 
-% [phi0,lambda0]=init_localisation(Vs,fr1,ft0,hs,R,etha,alpha,phis,lambdasat);
-% 
-% phi0deg = phi0*r2d;
-% lambda0deg = lambda0*r2d;
+[phi01,lambda01]=init_localisation(Vs,fr1,ft0,hs,R,etha,phis,lambdasat,phisat);
+[phi02,lambda02]=init_localisation(Vs,fr2,ft0,hs,R,etha,phis,lambdasat,phisat);
+
+
+phi01deg = phi01*r2d;
+lambda01deg = lambda01*r2d;
+phi02deg = phi02*r2d;
+lambda02deg = lambda02*r2d;
+
+figure()
+plot([phi01deg phi02deg],[lambda01deg lambda02deg],'*')
+xlabel("latitude"),ylabel("longitude"),title("Estimation positions initiales")
+%geoplot([phisat*r2d],[lambdasat*r2d],'*')
+%geolimits([45 62],[-149 -123])
+%geobasemap streets
+hold on
+plot(latc,longc,'-')
+legend("Pos init","Fov du satellite")
+
+hold off
 
 
 % Raffinement itératif (Méthode Gauss-Newton)
 h0=0;                                                                    %Balise en mer par exemple
-lambda0 = 44.833328*d2r;
-phi0 = -0.56667*d2r;
+lambda0 = lambda01;
+phi0 = phi01;
 x0=[lambda0;phi0;h0;ft0];
 mk= 4;                                                                                              % Nombre de mesures de fréquences sur un passage satellite (doit etre >=3 pour avoir assez d'equations)
 
@@ -174,8 +192,8 @@ end
 
 Xk_MAT(:,1:2) = Xk_MAT(:,1:2)*r2d;
 
-figure(1)
-plot(Xk_MAT(:,1),Xk_MAT(:,2),'*')
-title("Evolution de la position au fil des itérations")
-xlabel("Longitude (°)")
-xlabel("Latitude (°)")
+% figure(1)
+% plot(Xk_MAT(:,1),Xk_MAT(:,2),'*')
+% title("Evolution de la position au fil des itérations")
+% xlabel("Longitude (°)")
+% xlabel("Latitude (°)")
