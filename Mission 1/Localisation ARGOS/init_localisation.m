@@ -52,8 +52,8 @@ elseif(val_racine1 >=0 && val_racine2>=0)
     Z2_L = hs*sin(etha+theta)^2 + sqrt(val_racine1)*cos(etha+theta);
 end
 
-disp("Z2_0 : " +Z2_0)
-disp("Z2_L : " +Z2_L)
+%disp("Z2_0 : " +Z2_0)
+%disp("Z2_L : " +Z2_L)
 
 Z2 =Z2_L;
 
