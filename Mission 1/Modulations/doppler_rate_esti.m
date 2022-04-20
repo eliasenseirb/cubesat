@@ -15,16 +15,21 @@ function [cd_estime] = doppler_rate_esti(x,M,Np,chirp,T)
     for i=1:Np
         Mat_Detect(:,i)=Mat(:,i).*chirp'; % On multiplie chaque colonne par le chirp brut conjugué
     end
-    [~,test_ip1]=max(abs(fft(Mat_Detect)));!
+    [~,test_ip1]=max(abs(fft(Mat_Detect)));
+%     for i=1:Np
+%         [pos] = recherche_dichotomique(test_ip1(i)-2, test_ip1(i), 1E-4, Mat_Detect(:,i))
+%     end
+    
     [ip,~] = concave(Mat_Detect,test_ip1-1,M); % on utilise l'algo de concavité pour améliorer la valeur de positionnement des maxs
-    %cd_estime = 2/T^2*(ip(end)-ip(1))/length(ip); % calcul de l'estimation du DR entre la première valeur de préambule et la dernière
     cd_estime=0;
     for p=1:Np-1 %calcul equation 2.52
         somme_droite = 0;
         for l=p+1:Np
-               somme_droite = somme_droite+2/(T^2)*((ip(l)-ip(p)))/((l-p)*10);
+               somme_droite = somme_droite+1/(T^2)*((ip(l)-ip(p)))/((l-p));
         end
         cd_estime=cd_estime+somme_droite/(Np-p);
     end
     cd_estime = cd_estime/(Np-1);
+    %cd_estime = (ip(end)-ip(1))/(Np*T^2); % calcul du DR entre la premiere
+    %et la derniere valeur du preambule
 end

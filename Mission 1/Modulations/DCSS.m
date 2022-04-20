@@ -3,7 +3,7 @@ close all;
 clc
 
 %% Paramètres
-SF = 8 ;            %Nombre de bits/symbole
+SF = 12 ;            %Nombre de bits/symbole
 M=2^SF;
 
 Fse=10; % Facteur de sur-échantillonnage
@@ -19,18 +19,18 @@ N_sw = 2; % synchro word
 val_sw = 10; % valeur du mot de synchro
 taille_preambule = Nb_preambule_down+Nb_preambule_up+N_sw;
 Nb_Chirp = 10; % nombre de Chirp qu'on souhaite dans le signal
-SNR_dB = -10;           %Rapport signal sur bruit au niveau du récepteur
+SNR_dB = 100;           %Rapport signal sur bruit au niveau du récepteur
 Nbbits = SF*Nb_Chirp;     %Nombre de bits générés
 time_upsampled = -Ts/2:Te/Fse:Ts/2-Te/Fse;                % base de temps sur laquelle les chirps sont générés
 time = -Ts/2:Te:Ts/2-Te;
-eb_n0_dB = -15:-9; % Liste des Eb/N0 en dB
+eb_n0_dB = -10:-5; % Liste des Eb/N0 en dB
 eb_n0 = 10.^(eb_n0_dB/10); % Liste des Eb/N0
 %% Transmetteur
 sb = randi([0,1],1,Nbbits);     % génération des bits aléatoires
-chirp_up_upsampled= exp(1j*2*pi.*time_upsampled*B/Ts.*time_upsampled);    % Chirp up sur échantillonné
-chirp_down_upsampled= exp(-1j*2*pi.*time_upsampled*B/Ts.*time_upsampled);     %Chirp down sur échantillonné
-chirp_up= exp(1j*2*pi.*time*B/Ts.*time);    % Chirp up 
-chirp_down= exp(-1j*2*pi.*time*B/Ts.*time);     %Chirp down 
+chirp_up_upsampled= exp(1j*2*pi.*time_upsampled*B/Ts.*time_upsampled/2);    % Chirp up sur échantillonné
+chirp_down_upsampled= exp(-1j*2*pi.*time_upsampled*B/Ts.*time_upsampled/2);     %Chirp down sur échantillonné
+chirp_up= exp(1j*2*pi.*time*B/Ts.*time/2);    % Chirp up 
+chirp_down= exp(-1j*2*pi.*time*B/Ts.*time/2);     %Chirp down 
 
 sbMAT = reshape(sb,SF,length(sb)/SF);           %Matrice dont les colonnes sont des sous-sequences de SF bits
 
@@ -66,8 +66,9 @@ for i = 1:length(eb_n0)
         y=filter(h,1,su);
         
         %% Décalage temporel
-        %decalage_temporel = randi([0,M-1],1); % génération d'un décalage aléatoire
-        %y= [zeros(1,decalage_temporel),y]; % décalage du signal : on rajoute des 0 devant
+        K = randi([2,10],1)
+        decalage_temporel = K*Fse*M+randi([-M/2,M/2-1],1); % génération d'un décalage aléatoire
+        y= [zeros(1,decalage_temporel),y]; % décalage du signal : on rajoute des 0 devant
         %deca = [exp(1j*2*pi.*time_upsampled(1:decalage_temporel).*fc(time_upsampled(1:decalage_temporel),0,B,Ts))]; % génération des chirps
         %y=[deca,y];
         %% Récepteur
@@ -75,72 +76,35 @@ for i = 1:length(eb_n0)
         Py = mean(abs(y).^2); % Puissance instantanée du signal reçu
         %Pbruit = Py/10^(SNR_dB/10); % Puissance du bruit
         Pbruit = Py/10^(eb_n0_dB(i)/10); % Puissance du bruit
-        %Pbruit=0;
         b = sqrt(Pbruit/2) * (randn(size(y)) + 1i*randn(size(y))); % vecteur de bruit AWG de variance Pbruit
         
         x = y + b; %ajout du bruit au signal 
 
         % Ajout du Doppler Rate
-        temp = floor(length(x)/(M*Fse)); %durée d'un chirp
-        sig = x(1:M*Fse*temp); % on coupe notre signal pour pouvoir le mettre en mode matrice (un chirp = une colonne)
-        sig_Mat = reshape(sig,M*Fse,temp); % on transforme la matrice pour avoir des chirps en colonnes
-        for j=1:Nb_preambule_up
-            sig_Mat_Detect(:,j)=sig_Mat(:,j).*chirp_up_upsampled'; % On multiplie chaque colonne par le chirp brut conjugué
-        end
-        [~,test1] = max(abs(fft(sig_Mat_Detect))); % calcul de la fft de chaque colonne
-
         Cr=280; % valeur du Doppler Rate en Hz/s
         t=((0:length(x)-1)*Te/Fse).^2;
         x=x.*exp(1j*pi*Cr*t);
-        temp = floor(length(x)/(M*Fse)); %durée d'un chirp
-        sig = x(1:M*Fse*temp); % on coupe notre signal pour pouvoir le mettre en mode matrice (un chirp = une colonne)
-        sig_Mat = reshape(sig,M*Fse,temp); % on transforme la matrice pour avoir des chirps en colonnes
-        for j=1:Nb_preambule_up
-            sig_Mat_Detect(:,j)=sig_Mat(:,j).*chirp_up_upsampled'; % On multiplie chaque colonne par le chirp brut conjugué
-        end
-        [~,test2] = max(abs(fft(sig_Mat_Detect))); % calcul de la fft de chaque colonne
-        [test3,~] = concave(sig_Mat_Detect,test2-1,M);
-        2/(Ts^2)*(test3(2)-test3(1))
-        cd_estime=0;
-        Np=Nb_preambule_up;
-        for p=1:Np-1 %calcul equation 2.52
-            somme_droite = 0;
-            for l=p+1:Np
-                   somme_droite = somme_droite+2/(Ts^2)*((test3(l)-test3(p)))/(l-p);
-            end
-            cd_estime=cd_estime+somme_droite/(Np-p);
-        end
-        cd_estime = cd_estime/(Np-1);
+
+        %2/(Ts^2)*(test3(2)-test3(1))
         %% Estimation du décalage temporel
         x2=x;
         x=x(1:Fse:end);% on travail en mode sous échantillonné pour tous les traitements
-        Fse=1;
-        temp = floor(length(x)/(M*Fse)); %durée d'un chirp
-        sig = x(1:M*Fse*temp); % on coupe notre signal pour pouvoir le mettre en mode matrice (un chirp = une colonne)
-        sig_Mat = reshape(sig,M*Fse,temp); % on transforme la matrice pour avoir des chirps en colonnes
-        for j=1:Nb_preambule_up
-            sig_Mat_Detect2(:,j)=sig_Mat(:,j).*chirp_up'; % On multiplie chaque colonne par le chirp brut conjugué
-        end
-        [~,test2] = max(abs(fft(sig_Mat_Detect2))); % calcul de la fft de chaque colonne
-        [test3,~] = concave(sig_Mat_Detect2,test2-1,M);
-        cd_estime2=0;
-        Np=Nb_preambule_up;
-        for p=1:Np-1 %calcul equation 2.52
-            somme_droite = 0;
-            for l=p+1:Np
-                   somme_droite = somme_droite+2/((Ts*10)^2)*((test3(l)-test3(p)))/(l-p+10);
-            end
-            cd_estime2=cd_estime2+somme_droite/(Np-p);
-        end
-        cd_estime2 = cd_estime2/(Np-1+10);
-        %K_estime = preambule_detect(chirp_up,Nb_preambule_up,N_sw,x,M,1); % estimation du décalage temporel
-        %decalage_temporel
-        %synchro_temporelle= time_synchro(K_estime,Nb_preambule_up,N_sw,x,M,1,time_upsampled,B,Ts); % synchronisation temporelle
-        %synchro_temporelle
-        %fprintf("L'écart entre le décalage temporel théorique et celui trouvé est de %i \n",(decalage_temporel-synchro_temporelle))
+        % Utilisation de la fonction dichotomique de Mr Ben Temim
+%         for k=1:7
+%             [pos] = recherche_dichotomique((test2(k)-2)*2*pi/M, test2(k)*2*pi/M, 1e-5, sig_Mat_Detect2(:,k));
+%             res(k) = pos*M/(2*pi)
+%         end
+        % Détection du préambule
+        K_estime = preambule_detect(chirp_up,Nb_preambule_up,N_sw,x,M,1); % estimation du décalage temporel
+        K_estime
+        % Estimation du décalage temporel
+        synchro_temporelle= time_synchro(K_estime,Nb_preambule_up,N_sw,x,M,chirp_up,time_upsampled,B,Ts); % synchronisation temporelle
+        (decalage_temporel/10-synchro_temporelle)/M
+%         index_max=binary_search(x,K,M,Nb_preambule_up,1,SF,chirp_up)
+%         (decalage_temporel/10-index_max)/M
         
         %%
-        DR_esti = doppler_rate_esti(x,M,Nb_preambule_up,chirp_up,Ts); %estimation doppler rate
+        DR_esti = doppler_rate_esti(x(synchro_temporelle:end),M,Nb_preambule_up,chirp_up,Ts); %estimation doppler rate
         temp=floor(length(x)/M); % Durée d'un chirp
         x=x(1:temp*M); % on redimensionne x pour le reshape
         
@@ -151,8 +115,14 @@ for i = 1:length(eb_n0)
         nu_est = frac_CFO(rdc,Nb_preambule_up,M); % cfo estimation
         lambda_est = STO_esti(rdc,M,chirp_up,nu_est,Nb_preambule_up); % sto estimation
         % Compensation du cfo, sto et dr dans le payload
+        valeur_sous_ech = round(lambda_est*Fse);
+        signal_final = x2(synchro_temporelle+1:Fse:end); % sto compensation
+        signal_final = signal_final.*exp(-1j*pi*DR_esti*Ts^2*(0:length(signal_final)-1).^2);
 
-
+        temp=floor(length(x)/M); % Durée d'un chirp
+        x=x(1:temp*M); % on redimensionne x pour le reshape
+        
+        sig_reshaped=reshape(x,[M,temp]); % on met en colonne les chirps
         z=sig_reshaped.*chirp_up'; % multiplication par le chirp brut conjugué
         
         [max_fft, symbolesEstLoRa]=max(abs(fft(z))); % argmax des FFT
