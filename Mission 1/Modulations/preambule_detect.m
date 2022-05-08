@@ -38,7 +38,7 @@ function [K_est] = preambule_detect(chirp,Np,Nsw,sig,M,Fse)
     sig_sfd = sig_Mat(:,start_ind:sfd_locate+3).*chirp.'; % on applique des up chirps la ou doit se situer notre sfd
     [maxval,~] = max(abs(fft(sig_sfd))); % calcul de l'approx du décalage temporel 
     [~,T_section_location] = max(maxval); 
-    K_est =start_ind+ T_section_location-(sfd_locate+3-start_ind);
+    K_est =start_ind+ T_section_location-(sfd_locate+3-start_ind)+1;
     %K_est = start_ind;
 end
 

@@ -31,6 +31,6 @@ function [symb,Rw] = concave(z,Dp_estimes,M) % sert à trouver le décalage en f
 end
 
 function R_w = r(z,w,M)
-    w2=2*pi*(w)/M;
-    R_w = abs(sum(z.'.*exp(-1j*(0:length(z)-1)*w2)));
+    w2=2*pi*w/M;
+    R_w = abs(sum((z.').*exp(-1j*(0:length(z)-1)*w2)));
 end
