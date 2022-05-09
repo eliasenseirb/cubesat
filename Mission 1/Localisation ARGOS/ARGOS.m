@@ -174,7 +174,7 @@ end
 
 Xk_MAT(:,1:2) = Xk_MAT(:,1:2)*r2d;
 
-figure(1)
+figure()
 plot(Xk_MAT(:,1),Xk_MAT(:,2),'*')
 title("Evolution de la position au fil des itérations")
 xlabel("Longitude (°)")
