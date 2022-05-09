@@ -1,8 +1,11 @@
 function [symb,Rw] = concave(z,Dp_estimes,M) % sert à trouver le décalage en fréquence
+% fonction qui réalise l'algorithme de concavité pour réaliser de manière
+% précise la localisation des argmax
     a_tab = Dp_estimes -1; % 
     b_tab = Dp_estimes +1 ;% Tableau des intervalles à étudier
     
-    p=12; % 
+    epsilon = 1E-4;
+    p=log2((b_tab(1)-a_tab(1))/epsilon)+1; % 
     N=2^p; % Nombres de points sur lequels on travaille
     
     for k=1:length(a_tab) % on boucle sur les intervalles
@@ -25,5 +28,9 @@ function [symb,Rw] = concave(z,Dp_estimes,M) % sert à trouver le décalage en f
             symb(k)=b_tab(k);
         end
     end
+end
 
+function R_w = r(z,w,M)
+    w2=2*pi*w/M;
+    R_w = abs(sum((z.').*exp(-1j*(0:length(z)-1)*w2)));
 end
