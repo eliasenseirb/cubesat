@@ -1,6 +1,6 @@
 function [phi,lambda]=init_localisation(vs,fr,ft,hs,R,etha,phis,lambdasat,phisat)
 % Fonction calculant l'intersection cone-sphere en cartésien et en
-% géographique
+% géographique (Marche pas)
 %Entrées : vs :vitesse du satellite
 %          fr :fréquence reçue au niveau du satellite
 %          ft :fréquence transmise par la balise
