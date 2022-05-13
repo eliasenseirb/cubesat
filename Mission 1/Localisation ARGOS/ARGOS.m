@@ -86,11 +86,11 @@ GE=RE+hs;
 GP=RP+hs;
 
 ft0 = 868e6;                   % Fréquence d'emission par la plateforme
-fr1 = ft0 + 5e3;               % Fréquence reçue au début du premier
-fr2 = ft0 - 7e3;
+fr1 = ft0 + 3e3;               % Fréquence reçue au début du premier
+fr2 = ft0 - 5e3;
 R = 6371e3;                    % Rayon de la terre
-etha = 15*d2r;                 % Angle entre l'axe joignant le sommet du cône et le centre de la sphère avec l'axe Z
-phis = 70*d2r;                 % Latitude au point sous-sommet du cone
+etha = 1*d2r;                 % Angle entre l'axe joignant le sommet du cône et le centre de la sphère avec l'axe Z
+phis = -87*d2r;                % Latitude au point sous-sommet du cone
 lambdasat = S_long(1)*d2r;
 phisat = S_lat(1)*d2r;
 rov=FoV(Ecc(1),a, e, w, eps);   %rov :the radius of the Field of View in degrees.
