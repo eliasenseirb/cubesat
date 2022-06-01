@@ -11,7 +11,7 @@ val_sw = 10; % valeur du mot de synchro
 DR_max = 280; % Hz/s
 erreur_quadratique = zeros(length(SF),13);
 erreur_standard = zeros(length(SF),13);
-var_boucle = 1E2;
+var_boucle = 1E3;
 for boucle=1:var_boucle
     Dr_simul = DR_max * unifrnd(0,1);
     %% Transmetteur
@@ -83,5 +83,5 @@ figure(1),semilogy(eb_n0_dB.',erreur_quadratique.'/var_boucle),grid on,title('Sq
 xlabel('$eb\_n0\_dB$','Interpreter','latex','fontsize',14),ylabel('$(\hat{D}_p-D_p)^2$','Interpreter','latex','fontsize',14)
 figure(2),semilogy(eb_n0_dB.',erreur_standard.'/var_boucle),grid on,title('Standard Error'),legend('SF=7','SF=8','SF=9','SF=10','SF=11','SF=12')
 xlabel('$eb\_n0\_dB$','Interpreter','latex','fontsize',14),ylabel('$ \left| \hat{D}_p-D_p\right| $','Interpreter','latex','fontsize',14)
-%saveas(1,'erreur_quadratique_tous_les_sf.png');
-%saveas(2,'erreur_standard_tous_les_sf.png');
+saveas(1,'erreur_quadratique_tous_les_sf.png');
+saveas(2,'erreur_standard_tous_les_sf.png');

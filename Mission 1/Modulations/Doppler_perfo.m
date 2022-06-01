@@ -30,7 +30,7 @@ Symbole_sync = [exp(1j*2*pi.*time_upsampled.*fc(time_upsampled,val_sw/B,B,Ts,val
 erreur_quadratique = zeros(length(Nb_preambule_up),length(eb_n0_dB));
 erreur_standard = zeros(length(Nb_preambule_up),length(eb_n0_dB));
 
-var_boucle = 1E2;
+var_boucle = 1E3;
 for boucle=1:var_boucle
     Dr_simul = DR_max * unifrnd(0,1);
     %% Transmetteur
@@ -81,5 +81,5 @@ figure(1),semilogy(eb_n0_dB,erreur_quadratique/var_boucle),grid on,title('Square
 xlabel('$eb\_n0\_dB$','Interpreter','latex','fontsize',14),ylabel('$(\hat{D}_p-D_p)^2$','Interpreter','latex','fontsize',14)
 figure(2),semilogy(eb_n0_dB,erreur_standard/var_boucle),grid on,title('Standard Error'),legend('Np=4','Np=8','Np=12','Np=16','Np=20','Np=24','Np=28','Np=32')
 xlabel('$eb\_n0\_dB$','Interpreter','latex','fontsize',14),ylabel('$ \left| \hat{D}_p-D_p\right| $','Interpreter','latex','fontsize',14)
-%saveas(1,'erreur_quadratique_sf_7.png');
-%saveas(2,'erreur_standard_sf_7.png');
+saveas(1,'erreur_quadratique_sf_7.png');
+saveas(2,'erreur_standard_sf_7.png');

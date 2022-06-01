@@ -4,7 +4,7 @@ function [symb,Rw] = concave(z,Dp_estimes,M) % sert à trouver le décalage en f
     a_tab = Dp_estimes -1; % 
     b_tab = Dp_estimes +1 ;% Tableau des intervalles à étudier
     
-    epsilon = 1E-4;
+    epsilon = 1E-2;
     p=log2((b_tab(1)-a_tab(1))/epsilon)+1; % 
     N=2^p; % Nombres de points sur lequels on travaille
     
